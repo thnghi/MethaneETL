@@ -1,0 +1,51 @@
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.decorators import task, task_group
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from datetime import datetime
+
+default_args = {
+    'start_date': datetime(2023, 1, 1),
+}
+
+@task
+def fetch_items_from_postgres():
+    hook = PostgresHook(postgres_conn_id='your_postgres_conn_id')
+    sql = "SELECT kind, item_name FROM items_table;"
+    records = hook.get_records(sql)
+
+    kind_1_items = [r[1] for r in records if r[0] == 'kind_1']
+    kind_2_items = [r[1] for r in records if r[0] == 'kind_2']
+
+    return {
+        "kind_1": kind_1_items,
+        "kind_2": kind_2_items
+    }
+
+@task
+def process_item(item: str, kind: str):
+    print(f"Processing {item} of {kind}")
+
+with DAG(
+    dag_id='process_items_from_postgres',
+    default_args=default_args,
+    schedule_interval=None,
+    catchup=False,
+    tags=['postgres', 'dynamic'],
+) as dag:
+
+    items_by_kind = fetch_items_from_postgres()
+
+    # Step 2: Process kind_1 items in parallel
+    process_kind_1 = process_item.expand(
+        item=items_by_kind["kind_1"],
+        kind=["kind_1"] * items_by_kind["kind_1"] | length
+    )
+
+    # Step 3: Process kind_2 items in parallel
+    process_kind_2 = process_item.expand(
+        item=items_by_kind["kind_2"],
+        kind=["kind_2"] * items_by_kind["kind_2"] | length
+    )
+
+    items_by_kind >> [process_kind_1, process_kind_2]
