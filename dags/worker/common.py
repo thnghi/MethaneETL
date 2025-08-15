@@ -74,6 +74,4 @@ def wait_for_dag_run_complete(
             raise TimeoutError(f"DAG run {run_id} did not complete within {timeout} seconds.")
 
         time.sleep(poll_interval)
-  
-dag_id = "F2L_consumer_child_dag"
-unique_run_id = "F2L_consumer_child_dag__3d02c312-e4c8-43d4-9737-7d0a09634815"
+   

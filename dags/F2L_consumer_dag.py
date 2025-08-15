@@ -14,10 +14,13 @@ from worker.master_run_worker import MasterRunWorker
 from worker.user_run_worker import UserRunWorker
 import json
 import uuid
+from airflow.hooks.postgres_hook import PostgresHook
+
+pg_hook_landing = PostgresHook(postgres_conn_id=Settings.CONN_LANDDB)
 
 def get_list_operation(**kwargs): 
  
-    run_worker = UserRunWorker()  
+    run_worker = UserRunWorker(pg_hook_landing)  
     list_operation = run_worker.get_list_import_operation_to_be_run()
     list_import_key  =  ','.join(str(item) for item in {item[3]  for item in list_operation})  
     if list_import_key != '':
@@ -62,15 +65,15 @@ def trigger_child_dag(dag_id,type, items):
  
 def finish_run(items):  
     print(f"Finish process for import keys: {items}")
-    run_worker = UserRunWorker()  
+    run_worker = UserRunWorker(pg_hook_landing)  
     run_worker.finish_import_run(items)   
     
- 
 
 with DAG(
     dag_id="F2L_consumer_dag",
     start_date=pendulum.datetime(2023, 1, 1, tz="UTC"),
     schedule=None,
+    # schedule_interval = '*/2 * * * *',
     catchup=False,
     tags=["landing"],
 ) as dag:  

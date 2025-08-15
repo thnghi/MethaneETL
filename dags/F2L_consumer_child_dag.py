@@ -6,8 +6,9 @@ from airflow.decorators import task
 from datetime import datetime
 from worker.settings import Settings
 from worker.pedigree_worker import PedigreeWorker
-# from worker.breed_worker import BreedWorker
-
+from airflow.hooks.postgres_hook import PostgresHook
+pg_hook_landing = PostgresHook(postgres_conn_id=Settings.CONN_LANDDB)
+pg_hook_methane = PostgresHook(postgres_conn_id=Settings.CONN_METHANEDB)
 
 with DAG(
     dag_id="F2L_consumer_child_dag",
@@ -15,7 +16,8 @@ with DAG(
     schedule=None,
     catchup=False,
     tags=["landing"],
-) as child_dag: 
+) as child_dag:
+ 
     @task
     def get_items_from_conf(**kwargs): 
         items_json = kwargs['dag_run'].conf.get('items', [])
@@ -25,7 +27,7 @@ with DAG(
     def process_item(import_operation_key, table_name, file_name, import_key):
         print(f"Processing {file_name} into {table_name} with operation {import_operation_key} and import key {import_key}")
         if table_name  == Settings.PEDIGREE_TABLE:
-            worker = PedigreeWorker(file_name,import_operation_key) 
+            worker = PedigreeWorker(pg_hook_landing,pg_hook_methane,file_name,import_operation_key) 
             worker.process_file()
         # elif table_name == Settings.BREED_TABLE:
         #     worker = BreedWorker(file_name,import_operation_key) 

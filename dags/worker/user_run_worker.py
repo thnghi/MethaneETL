@@ -3,13 +3,13 @@ from airflow.hooks.postgres_hook import PostgresHook
 from datetime import datetime
 class UserRunWorker():
      
-    def __init__(self,file_path = None, src_user = None, import_master_key = None,import_by=None): 
+    def __init__(self,pg_hook_landing, file_path = None, src_user = None, import_master_key = None,import_by=None): 
         self.conn_landdb = Settings.CONN_LANDDB
         self.file_path = file_path
         self.src_user = src_user
         self.import_master_key = import_master_key
         self.import_key = None
-        self.pg_hook_landing = PostgresHook(postgres_conn_id=self.conn_landdb)
+        self.pg_hook_landing = pg_hook_landing
         self.run_batch = Settings.RUN_BATCH
         self.import_by = import_by
     def create_import_run(self):  

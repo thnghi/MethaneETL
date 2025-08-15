@@ -6,8 +6,8 @@ from worker.common import *
 from worker.base_worker import BaseWorker
 class PedigreeWorker(BaseWorker):
      
-    def __init__(self, file_path, import_operation_key):
-        super().__init__(file_path, import_operation_key)  
+    def __init__(self, pg_hook_landing,pg_hook_methane,file_path, import_operation_key):
+        super().__init__(pg_hook_landing,pg_hook_methane,file_path, import_operation_key)  
         self.table_name = Settings.PEDIGREE_TABLE   
         self.clean_up_landing_data();
         self.is_failed= False
@@ -68,7 +68,7 @@ class PedigreeWorker(BaseWorker):
             self.status = 'C_VAL'
         except Exception as e: 
             self.status = 'F_VAL'
-            self.message =f"Error validate : {str(e)}" 
+            self.message =f"Error L2M : {str(e)}" 
             self.is_failed= True
             print(self.message) 
         

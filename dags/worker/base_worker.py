@@ -7,11 +7,11 @@ from worker.common import *
 
 class BaseWorker():
      
-    def __init__(self, file_path, import_operation_key): 
+    def __init__(self, pg_hook_landing,pg_hook_methane, file_path, import_operation_key): 
         self.file_path = file_path
         self.import_operation_key = import_operation_key 
-        self.pg_hook_landing = PostgresHook(postgres_conn_id=Settings.CONN_LANDDB)
-        self.pg_hook_methane = PostgresHook(postgres_conn_id=Settings.CONN_METHANEDB)
+        self.pg_hook_landing = pg_hook_landing
+        self.pg_hook_methane = pg_hook_methane
         self.table_name = "" 
         self.message = "" 
         self.status = "" 
@@ -54,5 +54,4 @@ class BaseWorker():
         """)
         processed_file_path = self.file_path.replace(f"{Settings.INPROGRESS_PATH}/",f"{Settings.PROCESSED_PATH}/") 
         move_file(self.file_path, processed_file_path) 
-
-         
+ 
